@@ -1,13 +1,15 @@
 <script setup>
-import { ref, onMounted, h } from 'vue';
+import { ref, onMounted } from 'vue';
 import { LMap, LTileLayer, LMarker, LPopup } from '@vue-leaflet/vue-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { useMissionStore } from '../../stores/useMissionStore'; // Import Store
+import { useMissionStore } from '../../stores/useMissionStore';
+import { useGameStore } from '../../stores/useGameStore';
 
 const zoom = ref(13);
 const center = ref([48.390394, -4.486076]); // Brest
-const missionStore = useMissionStore(); // Active Store
+const missionStore = useMissionStore();
+const gameStore = useGameStore();
 
 // Mock Data for Pollution Spots
 const spots = ref([
@@ -103,15 +105,12 @@ const createArcadeMarker = () => {
 
 const getMarkerIcon = (spot) => {
   if (spot.type === 'clan') {
-    // Use safe zone marker for clan headquarters
     if (spot.status === 'clean') {
       return createSafeZoneMarker();
     }
   } else if (spot.type === 'arcade') {
-    // Use arcade marker for gaming zones
     return createArcadeMarker();
   } else if (spot.type === 'waste') {
-    // Use hazard marker for polluted waste
     if (spot.status === 'polluted') {
       return createHazardMarker();
     }
@@ -140,11 +139,7 @@ onMounted(() => {
 
 // Handle Attack on Hazard Spot
 const handleAttack = (spotId) => {
-  const spot = spots.value.find(s => s.id === spotId);
-  if (spot) {
-    console.log(`Attack on ${spot.name}! +500 XP`);
-    missionStore.startMission(spotId);
-  }
+  missionStore.startMission(spotId);
 };
 
 // Handle Reinforce Safe Zone
@@ -152,17 +147,12 @@ const handleReinforce = (spotId) => {
   const spot = spots.value.find(s => s.id === spotId);
   if (spot) {
     console.log(`Reinforced ${spot.name}! +200 XP`);
-    // Here you can emit event to parent or call API
   }
 };
 
 // Handle Play Arcade Challenge
 const handlePlay = (spotId) => {
-  const spot = spots.value.find(s => s.id === spotId);
-  if (spot) {
-    console.log(`Playing arcade challenge at ${spot.name}! Bonus x2`);
-    // Here you can emit event to parent or call API
-  }
+  gameStore.openQuiz();
 };
 </script>
 
@@ -267,6 +257,8 @@ const handlePlay = (spotId) => {
       </l-marker>
 
     </l-map>
+
+
 
     <!-- Floating Action Button for Recenter (positioned above nav) -->
     <button 

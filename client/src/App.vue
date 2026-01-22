@@ -1,6 +1,8 @@
 <script setup>
 import { RouterView, RouterLink } from 'vue-router'
 import MissionOverlay from './components/MissionOverlay.vue';
+import QuizOverlay from './components/QuizOverlay.vue';
+import BonusHud from './components/BonusHud.vue';
 </script>
 
 <template>
@@ -9,6 +11,8 @@ import MissionOverlay from './components/MissionOverlay.vue';
     <!-- Main Content Area (takes all space above nav) -->
     <div class="flex-1 overflow-hidden">
       <MissionOverlay />
+      <QuizOverlay />
+      <BonusHud />
       <RouterView />
     </div>
 
