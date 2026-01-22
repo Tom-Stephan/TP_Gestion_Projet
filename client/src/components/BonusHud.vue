@@ -8,7 +8,7 @@ const gameStore = useGameStore();
   <Transition name="slide-fade">
     <div 
       v-if="gameStore.isBonusActive" 
-      class="fixed top-4 right-4 z-[90] flex items-center gap-3 bg-black/80 backdrop-blur-md border border-yellow-400/50 rounded-full py-2 px-4 shadow-[0_0_15px_rgba(250,204,21,0.4)]"
+      class="fixed top-4 right-4 z-[120] flex items-center gap-3 bg-black/80 backdrop-blur-md border border-yellow-400/50 rounded-full py-2 px-4 shadow-[0_0_15px_rgba(250,204,21,0.4)]"
     >
         <!-- Icon that pulses -->
         <div class="relative">
