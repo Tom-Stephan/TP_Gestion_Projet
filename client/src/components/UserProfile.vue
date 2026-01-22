@@ -103,45 +103,73 @@ const getRarityColor = (rarity) => {
     
     <!-- Clean Header -->
     <div class="max-w-4xl mx-auto p-6 pt-10">
-        <div class="flex items-start justify-between mb-8">
-            <div class="flex items-center gap-6">
-                <!-- Avatar with Colorful Ring -->
-                <div class="relative">
-                    <div class="w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-blue-400 to-teal-400 shadow-md">
-                        <div class="w-full h-full bg-white rounded-full flex items-center justify-center text-5xl border-2 border-white">
-                            🏴‍☠️
-                        </div>
-                    </div>
-                    <div class="absolute -bottom-1 -right-1 bg-slate-800 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full border-4 border-white shadow-sm">
-                        Lvl {{ user.level }}
+        <div class="flex flex-col md:flex-row items-center md:items-start gap-8 mb-12">
+            
+            <!-- Premium Avatar Container -->
+            <div class="relative group">
+                <!-- Glow Effect -->
+                <div class="absolute inset-0 bg-gradient-to-tr from-blue-400 to-purple-500 rounded-full blur-xl opacity-30 group-hover:opacity-50 transition-opacity duration-500"></div>
+                
+                <!-- Avatar Circle -->
+                <div class="w-40 h-40 rounded-full p-1.5 bg-gradient-to-tr from-white to-gray-100 shadow-2xl relative z-10">
+                    <div class="w-full h-full bg-slate-50 rounded-full overflow-hidden border-4 border-white flex items-center justify-center relative">
+                        <!-- Dicebear Avatar -->
+                        <img 
+                          :src="`https://api.dicebear.com/7.x/micah/svg?seed=${user.pseudo}&backgroundColor=b6e3f4`" 
+                          alt="Avatar" 
+                          class="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-110"
+                        />
                     </div>
                 </div>
-                
-                <!-- Info -->
-                <div>
-                   <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight mb-1">{{ user.pseudo }}</h1>
-                   <div class="flex items-center gap-2 mb-3">
-                        <span class="px-2.5 py-0.5 rounded-md bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-wider border border-blue-100">{{ user.title }}</span>
-                        <span class="px-2.5 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-xs font-bold uppercase tracking-wider border border-indigo-100">{{ user.clan.name }}</span>
-                   </div>
-                   
-                   <!-- Colored XP Bar -->
-                   <div class="flex items-center gap-3 text-xs w-56">
-                        <div class="flex-grow h-2 bg-gray-100 rounded-full overflow-hidden shadow-inner">
-                            <div class="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full" :style="{ width: `${progressPercent}%` }"></div>
-                        </div>
-                        <span class="text-slate-400 font-bold tabular-nums">{{ user.xp }}/{{ user.xpRequired }}</span>
-                   </div>
+
+                <!-- Floating Edit Button (FAB) -->
+                <button 
+                    class="absolute bottom-2 right-2 z-20 w-10 h-10 bg-white text-blue-600 rounded-full shadow-lg border border-gray-100 flex items-center justify-center transform transition-all hover:scale-110 hover:shadow-xl active:scale-95"
+                    title="Modifier l'avatar"
+                >
+                    <span class="text-lg">📷</span>
+                </button>
+
+                <!-- Level Badge -->
+                <div class="absolute top-0 right-0 z-20 bg-slate-800 text-white text-xs font-bold px-3 py-1 rounded-full border-2 border-white shadow-lg transform -rotate-6 group-hover:rotate-0 transition-transform">
+                    Lvl {{ user.level }}
                 </div>
             </div>
-
-            <button 
-              @click="handleLogout"
-              class="group flex flex-col items-center justify-center w-10 h-10 rounded-full bg-red-50 text-red-400 hover:bg-red-500 hover:text-white transition-all duration-300 shadow-sm"
-              title="Se déconnecter"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-            </button>
+            
+            <!-- Info Section -->
+            <div class="flex-1 text-center md:text-left pt-2">
+               <div class="flex flex-col md:flex-row items-center md:items-start justify-between w-full">
+                   <div>
+                       <h1 class="text-4xl font-extrabold text-slate-800 tracking-tight mb-2 drop-shadow-sm">{{ user.pseudo }}</h1>
+                       <div class="flex flex-wrap justify-center md:justify-start items-center gap-2 mb-6">
+                            <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-bold uppercase tracking-wider border border-blue-200 shadow-sm">{{ user.title }}</span>
+                            <span class="px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold uppercase tracking-wider border border-indigo-200 shadow-sm">{{ user.clan.name }}</span>
+                       </div>
+                   </div>
+                   
+                   <!-- Logout Button (Top Right) -->
+                   <button 
+                      @click="handleLogout"
+                      class="hidden md:flex group flex-col items-center justify-center w-10 h-10 rounded-full bg-red-50 text-red-400 hover:bg-red-500 hover:text-white transition-all duration-300 shadow-sm"
+                      title="Se déconnecter"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    </button>
+               </div>
+               
+               <!-- XP Bar -->
+               <div class="w-full max-w-md mx-auto md:mx-0">
+                    <div class="flex justify-between text-xs font-bold text-slate-500 mb-1 px-1">
+                        <span>Progression XP</span>
+                        <span class="text-blue-600">{{ user.xp }} / {{ user.xpRequired }}</span>
+                    </div>
+                    <div class="h-4 bg-gray-100 rounded-full overflow-hidden shadow-inner border border-gray-200 p-0.5">
+                        <div class="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-full shadow-sm relative overflow-hidden" :style="{ width: `${progressPercent}%` }">
+                            <div class="absolute inset-0 bg-white/20 animate-pulse"></div>
+                        </div>
+                    </div>
+               </div>
+            </div>
         </div>
 
         <!-- Colorful Stats Row -->
