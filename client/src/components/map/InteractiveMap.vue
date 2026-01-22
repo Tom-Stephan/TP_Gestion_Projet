@@ -1,16 +1,19 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, h } from 'vue';
 import { LMap, LTileLayer, LMarker, LPopup } from '@vue-leaflet/vue-leaflet';
+import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import HazardPopup from './HazardPopup.vue';
 
 const zoom = ref(13);
 const center = ref([48.390394, -4.486076]); // Brest
 
 // Mock Data for Pollution Spots
 const spots = ref([
-  { id: 1, lat: 48.3912, lng: -4.4375, status: 'clean', name: 'Plage du Moulin Blanc', description: 'Zone sécurisée par les Corsaires.' },
-  { id: 2, lat: 48.3831, lng: -4.4850, status: 'polluted', name: 'Opération Pneus', description: 'Gros dépôt sauvage signalé !' },
-  { id: 3, lat: 48.3885, lng: -4.4900, status: 'polluted', name: 'Mégots Rue de Siam', description: 'Nettoyage urgent requis.' },
+  { id: 1, lat: 48.3912, lng: -4.4375, status: 'clean', type: 'clan', name: 'QG Corsaires', description: 'Base du clan principal.' },
+  { id: 2, lat: 48.3831, lng: -4.4850, status: 'polluted', type: 'waste', name: 'Opération Pneus', description: 'Gros dépôt sauvage signalé !' },
+  { id: 3, lat: 48.3885, lng: -4.4900, status: 'polluted', type: 'waste', name: 'Mégots Rue de Siam', description: 'Nettoyage urgent requis.' },
+  { id: 4, lat: 48.3950, lng: -4.4500, status: 'clean', type: 'clan', name: 'Bastion de Garde', description: 'Clan allié sécurisé.' },
 ]);
 
 const getUserLocation = () => {
@@ -27,59 +30,582 @@ const getUserLocation = () => {
   }
 };
 
+// Create Custom Div Icons with Emojis
+const createDivIcon = (emoji, type) => {
+  return L.divIcon({
+    html: `
+      <div class="custom-marker" data-type="${type}">
+        <div class="marker-icon">${emoji}</div>
+      </div>
+    `,
+    iconSize: [48, 48],
+    iconAnchor: [24, 48],
+    popupAnchor: [0, -48],
+    className: 'custom-div-icon'
+  });
+};
+
+// Create Hazard Marker with Radioactive Icon and Pulsing Halo
+const createHazardMarker = () => {
+  return L.divIcon({
+    html: `
+      <div class="hazard-marker-wrapper">
+        <div class="hazard-halo"></div>
+        <div class="hazard-marker">
+          <div class="marker-icon">☢️</div>
+        </div>
+      </div>
+    `,
+    iconSize: [72, 72],
+    iconAnchor: [36, 72],
+    popupAnchor: [0, -72],
+    className: 'hazard-marker-icon'
+  });
+};
+
+const getMarkerIcon = (spot) => {
+  if (spot.type === 'clan') {
+    return createDivIcon('🏰', 'clan');
+  } else if (spot.type === 'waste') {
+    // Use hazard marker for polluted waste
+    if (spot.status === 'polluted') {
+      return createHazardMarker();
+    }
+    return createDivIcon('🗑️', 'waste-clean');
+  }
+  return createDivIcon('📍', 'default');
+};
+
+const getUserIcon = () => {
+  return L.divIcon({
+    html: `
+      <div class="custom-marker user-marker">
+        <div class="marker-icon pulse">🎮</div>
+      </div>
+    `,
+    iconSize: [48, 48],
+    iconAnchor: [24, 24],
+    popupAnchor: [0, -24],
+    className: 'custom-div-icon'
+  });
+};
+
 onMounted(() => {
   getUserLocation();
 });
 
-// Custom Icons Logic (Simplified for now using Leaflet default, but logic ready for custom assets)
-// Ideally, use L.icon() here for Red/Green markers
+// Handle Attack on Hazard Spot
+const handleAttack = (spotId) => {
+  const spot = spots.value.find(s => s.id === spotId);
+  if (spot) {
+    console.log(`Attack on ${spot.name}! +500 XP`);
+    // Here you can emit event to parent or call API
+  }
+};
 </script>
 
 <template>
-  <div class="h-screen w-full relative">
-    <l-map ref="map" v-model:zoom="zoom" v-model:center="center" :use-global-leaflet="false">
+  <div class="absolute inset-0 z-0 overflow-hidden bg-gradient-to-b from-blue-200 to-blue-100">
+    <l-map ref="map" v-model:zoom="zoom" v-model:center="center" :use-global-leaflet="false" class="w-full h-full">
+      <!-- CartoDB Voyager TileLayer (More aesthetic for gaming) -->
       <l-tile-layer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
         layer-type="base"
-        name="OpenStreetMap"
+        name="CartoDB Voyager"
+        attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors &copy; <a href='https://carto.com/attributions'>CARTO</a>"
       ></l-tile-layer>
 
+      <!-- Pollution Spots with Custom Icons -->
       <l-marker 
         v-for="spot in spots" 
         :key="spot.id" 
         :lat-lng="[spot.lat, spot.lng]"
+        :icon="getMarkerIcon(spot)"
       >
-        <l-popup>
-          <div class="text-center p-2">
-            <div class="text-lg font-black uppercase mb-1" :class="spot.status === 'clean' ? 'text-forest-green' : 'text-alert-red'">
-              {{ spot.status === 'clean' ? 'Zone Propre' : 'Zone Menacée' }}
+        <!-- Hazard Popup for Polluted Waste -->
+        <l-popup v-if="spot.status === 'polluted' && spot.type === 'waste'" class="hazard-popup-wrapper">
+          <div class="hazard-popup-content">
+            <div class="hazard-status-badge">
+              <span class="badge-icon">⚠️</span>
+              <span class="badge-text">ZONE MENACÉE</span>
             </div>
-            <h3 class="font-bold text-gray-800">{{ spot.name }}</h3>
-            <p class="text-sm text-gray-600 my-2">{{ spot.description }}</p>
-            <button v-if="spot.status === 'polluted'" class="btn-game text-xs py-2 px-4 w-full mt-2">
-              Attaquer (500 XP)
+            <h3 class="hazard-title">{{ spot.name }}</h3>
+            <p class="hazard-description">{{ spot.description }}</p>
+            <button @click="handleAttack(spot.id)" class="hazard-attack-btn">
+              <span class="btn-icon">⚔️</span>
+              <span class="btn-text">ATTAQUER</span>
+              <span class="btn-xp">(500 XP)</span>
+            </button>
+          </div>
+        </l-popup>
+
+        <!-- Standard Gaming Popup for other spots -->
+        <l-popup v-else class="gaming-popup">
+          <div class="popup-content">
+            <div class="popup-status" :class="spot.status === 'clean' ? 'status-clean' : 'status-polluted'">
+              {{ spot.status === 'clean' ? '✓ ZONE SÉCURISÉE' : '⚠️ ZONE MENACÉE' }}
+            </div>
+            <h3 class="popup-title">{{ spot.name }}</h3>
+            <p class="popup-description">{{ spot.description }}</p>
+            <button v-if="spot.status === 'polluted'" class="popup-action-btn" @click="handleAttack(spot.id)">
+              ⚔️ ATTAQUER (500 XP)
             </button>
           </div>
         </l-popup>
       </l-marker>
       
-      <!-- Current User Marker (simulated logic) -->
-       <l-marker :lat-lng="center">
-          <l-popup>Vous êtes ici 📍</l-popup>
-       </l-marker>
+      <!-- User Current Position Marker -->
+      <l-marker :lat-lng="center" :icon="getUserIcon()">
+        <l-popup class="gaming-popup">
+          <div class="popup-content">
+            <div class="text-center">
+              <p class="font-bold text-white">Vous êtes ici</p>
+              <p class="text-sm">🎮 Position: {{ center[0].toFixed(3) }}, {{ center[1].toFixed(3) }}</p>
+            </div>
+          </div>
+        </l-popup>
+      </l-marker>
 
     </l-map>
 
-    <!-- Floating Action Button for Recenter -->
-    <button @click="getUserLocation" class="absolute bottom-24 right-4 z-[400] bg-white p-3 rounded-full shadow-xl text-2xl border-2 border-ocean-blue active:scale-95 transition">
+    <!-- Floating Action Button for Recenter (positioned above nav) -->
+    <button 
+      @click="getUserLocation" 
+      class="absolute right-4 z-[400] bg-gradient-to-br from-forest-green to-green-700 p-4 rounded-full shadow-2xl text-3xl border-4 border-white active:scale-95 transition transform hover:scale-110"
+      title="Centrer la carte sur votre position"
+      style="bottom: 5.5rem;"
+    >
       🎯
     </button>
   </div>
 </template>
 
 <style scoped>
-/* Leaflet z-index fix for mobile nav */
-.leaflet-pane {
-    z-index: 10 !important;
+/* Hazard Marker Styling - Radioactive with Pulsing Halo */
+:deep(.hazard-marker-icon) {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+:deep(.hazard-marker-wrapper) {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+}
+
+:deep(.hazard-halo) {
+  position: absolute;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 100, 0, 0.6) 0%, rgba(255, 0, 0, 0.3) 70%, transparent 100%);
+  animation: hazard-halo-pulse 2s ease-in-out infinite;
+  box-shadow: 
+    0 0 30px rgba(255, 0, 0, 0.8),
+    0 0 60px rgba(255, 100, 0, 0.6),
+    inset 0 0 20px rgba(255, 200, 0, 0.2);
+}
+
+@keyframes hazard-halo-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+    box-shadow: 
+      0 0 30px rgba(255, 0, 0, 0.8),
+      0 0 60px rgba(255, 100, 0, 0.6),
+      inset 0 0 20px rgba(255, 200, 0, 0.2);
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+    box-shadow: 
+      0 0 50px rgba(255, 0, 0, 1),
+      0 0 100px rgba(255, 100, 0, 0.8),
+      inset 0 0 30px rgba(255, 200, 0, 0.3);
+  }
+}
+
+:deep(.hazard-marker) {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #ffff00 0%, #ffcc00 50%, #ff9900 100%);
+  border-radius: 8px;
+  border: 2px solid #000;
+  z-index: 10;
+  animation: hazard-marker-shake 1.5s ease-in-out infinite;
+  box-shadow: 0 0 20px rgba(255, 200, 0, 0.8);
+}
+
+@keyframes hazard-marker-shake {
+  0%, 100% { transform: rotate(0deg); }
+  15% { transform: rotate(-2deg); }
+  30% { transform: rotate(2deg); }
+  45% { transform: rotate(-2deg); }
+  60% { transform: rotate(0deg); }
+}
+
+:deep(.hazard-marker .marker-icon) {
+  font-size: 40px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  animation: icon-glow 1.5s ease-in-out infinite;
+}
+
+@keyframes icon-glow {
+  0%, 100% { 
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  }
+  50% { 
+    text-shadow: 0 0 8px rgba(255, 200, 0, 0.8), 0 2px 4px rgba(0, 0, 0, 0.5);
+  }
+}
+
+:deep(.hazard-marker-wrapper:hover) {
+  z-index: 1000;
+}
+
+/* Custom Marker Styling */
+:deep(.custom-div-icon) {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+:deep(.custom-marker) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  transition: transform 0.2s ease;
+}
+
+:deep(.custom-marker:hover) {
+  transform: scale(1.2);
+}
+
+:deep(.custom-marker.user-marker .marker-icon) {
+  font-size: 32px;
+  animation: pulse-animation 2s infinite;
+}
+
+:deep(.marker-icon) {
+  font-size: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes pulse-animation {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+/* Hazard Popup Wrapper - Remove Leaflet defaults */
+:deep(.hazard-popup-wrapper .leaflet-popup-content-wrapper) {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+:deep(.hazard-popup-wrapper .leaflet-popup-content) {
+  margin: 0 !important;
+  width: 100% !important;
+  padding: 0 !important;
+}
+
+:deep(.hazard-popup-wrapper .leaflet-popup-tip-container) {
+  display: none !important;
+}
+
+:deep(.hazard-popup-wrapper .leaflet-popup-tip) {
+  display: none !important;
+}
+
+/* Hazard Popup Content Styling */
+.hazard-popup-content {
+  position: relative;
+  background: linear-gradient(135deg, #cc0000 0%, #ff0000 50%, #cc0000 100%);
+  border-radius: 20px;
+  padding: 16px 20px;
+  overflow: hidden;
+  box-shadow: 
+    0 0 30px rgba(255, 0, 0, 0.8),
+    0 0 60px rgba(255, 100, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 200, 0, 0.6);
+  animation: hazard-pulse 2s ease-in-out infinite;
+  max-width: 300px;
+}
+
+@keyframes hazard-pulse {
+  0%, 100% {
+    box-shadow: 
+      0 0 30px rgba(255, 0, 0, 0.8),
+      0 0 60px rgba(255, 100, 0, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+  50% {
+    box-shadow: 
+      0 0 50px rgba(255, 0, 0, 1),
+      0 0 100px rgba(255, 100, 0, 0.7),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+}
+
+/* Hazard Status Badge */
+.hazard-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-weight: bold;
+  font-size: 0.85rem;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border-left: 3px solid #ffff00;
+}
+
+.badge-icon {
+  font-size: 1.1rem;
+  animation: badge-bounce 1s ease-in-out infinite;
+}
+
+@keyframes badge-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+.badge-text {
+  color: #ffff00;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Hazard Title */
+.hazard-title {
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: #ffffff;
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+  text-shadow: 0 3px 8px rgba(0, 0, 0, 0.6);
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+}
+
+/* Hazard Description */
+.hazard-description {
+  font-size: 0.9rem;
+  color: #ffffff;
+  margin: 0 0 16px 0;
+  line-height: 1.4;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  font-weight: 500;
+}
+
+/* Attack Button - The Hero Element */
+.hazard-attack-btn {
+  width: 100%;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, #ff3333 0%, #cc0000 50%, #990000 100%);
+  color: #ffffff;
+  border: 3px dashed #ffcc00;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  letter-spacing: 1px;
+  position: relative;
+  overflow: hidden;
+  
+  /* Intense Glow Effect */
+  box-shadow: 
+    0 0 20px rgba(255, 204, 0, 0.8),
+    0 0 40px rgba(255, 100, 0, 0.6),
+    inset 0 2px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.3);
+  
+  animation: button-glow 2s ease-in-out infinite;
+}
+
+@keyframes button-glow {
+  0%, 100% {
+    box-shadow: 
+      0 0 20px rgba(255, 204, 0, 0.8),
+      0 0 40px rgba(255, 100, 0, 0.6),
+      inset 0 2px 0 rgba(255, 255, 255, 0.2),
+      inset 0 -2px 0 rgba(0, 0, 0, 0.3);
+    border-color: #ffcc00;
+  }
+  50% {
+    box-shadow: 
+      0 0 30px rgba(255, 204, 0, 1),
+      0 0 60px rgba(255, 150, 0, 0.8),
+      inset 0 2px 0 rgba(255, 255, 255, 0.3),
+      inset 0 -2px 0 rgba(0, 0, 0, 0.4);
+    border-color: #ffff00;
+  }
+}
+
+.hazard-attack-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 0 40px rgba(255, 204, 0, 1),
+    0 0 80px rgba(255, 100, 0, 0.8),
+    0 4px 12px rgba(0, 0, 0, 0.4),
+    inset 0 2px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.4);
+  background: linear-gradient(135deg, #ff5555 0%, #ff3333 50%, #cc0000 100%);
+}
+
+.hazard-attack-btn:active {
+  transform: translateY(0);
+  box-shadow: 
+    0 0 20px rgba(255, 204, 0, 0.8),
+    0 0 40px rgba(255, 100, 0, 0.6),
+    inset 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.btn-icon {
+  font-size: 1.2rem;
+  animation: icon-shake 0.3s ease-in-out infinite;
+}
+
+@keyframes icon-shake {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-3deg); }
+  75% { transform: rotate(3deg); }
+}
+
+.btn-text {
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+}
+
+.btn-xp {
+  font-size: 0.85rem;
+  font-weight: 700;
+  opacity: 0.95;
+  margin-left: 2px;
+}
+
+:deep(.gaming-popup .leaflet-popup-tip) {
+  background: #1a1a2e !important;
+  border-left: 3px solid transparent !important;
+  border-right: 3px solid transparent !important;
+}
+
+:deep(.gaming-popup .leaflet-popup-content) {
+  margin: 0 !important;
+  width: 100% !important;
+}
+
+.popup-content {
+  padding: 12px 16px;
+  color: white;
+  font-family: 'Arial Black', sans-serif;
+}
+
+.popup-status {
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.status-clean {
+  background: rgba(34, 197, 94, 0.3);
+  color: #4ade80;
+  border: 1px solid #22c55e;
+}
+
+.status-polluted {
+  background: rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  border: 1px solid #ef4444;
+}
+
+.popup-title {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #00d4ff;
+  margin-bottom: 6px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.popup-description {
+  font-size: 0.75rem;
+  color: #e0e0e0;
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+
+.popup-action-btn {
+  width: 100%;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+  color: white;
+  border: 2px solid #ff8787;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.popup-action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+  background: linear-gradient(135deg, #ff8787 0%, #ff6b6b 100%);
+}
+
+.popup-action-btn:active {
+  transform: translateY(0);
+}
+
+/* Leaflet Container Fixes */
+:deep(.leaflet-container) {
+  font-family: 'Arial', sans-serif;
+}
+
+:deep(.leaflet-pane) {
+  z-index: 10 !important;
+}
+
+:deep(.leaflet-control-zoom) {
+  display: none !important;
+}
+
+/* Remove default Leaflet styling for mobile-first approach */
+:deep(.leaflet-bottom.leaflet-right) {
+  display: none !important;
 }
 </style>

@@ -3,7 +3,10 @@ import InteractiveMap from '../components/map/InteractiveMap.vue';
 </script>
 
 <template>
-  <main class="h-screen w-screen overflow-hidden">
+  <div class="w-full h-full relative">
     <InteractiveMap />
-  </main>
+  </div>
 </template>
+
+<style scoped>
+</style>
