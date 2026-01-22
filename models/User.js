@@ -44,6 +44,13 @@ const userSchema = new mongoose.Schema(
         type: String, // Stocke les IDs ou noms des cartes collectées
       },
     ],
+    history: [
+      {
+        action: String,
+        date: String,
+        gain: String,
+      },
+    ],
   },
   {
     timestamps: true,

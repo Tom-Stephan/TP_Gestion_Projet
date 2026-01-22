@@ -144,6 +144,8 @@ const handleAttack = (spotId) => {
   missionStore.startMission(spotId);
   // Award XP for starting/doing the mission (Simplified for TP)
   userStore.addXp(500);
+  userStore.addWalletPoints(50);
+  userStore.addHistoryItem('Attaque Zone Polluée', '+500 XP | +50 💰');
   userStore.saveUserData();
 };
 
@@ -153,6 +155,7 @@ const handleReinforce = (spotId) => {
   if (spot) {
     console.log(`Reinforced ${spot.name}! +200 XP`);
     userStore.addXp(200);
+    userStore.addHistoryItem('Renfort Zone Alliée', '+200 XP');
     userStore.saveUserData();
   }
 };

@@ -29,6 +29,7 @@ router.put('/:id', async (req, res) => {
         if (inventory_cards !== undefined) updateData.inventory_cards = inventory_cards;
         if (req.body.xp !== undefined) updateData.xp = req.body.xp;
         if (req.body.level !== undefined) updateData.level = req.body.level;
+        if (req.body.history !== undefined) updateData.history = req.body.history;
 
         const updatedUser = await User.findByIdAndUpdate(
             req.params.id,

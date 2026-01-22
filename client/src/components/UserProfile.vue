@@ -99,10 +99,10 @@ const getRarityColor = (rarity) => {
 </script>
 
 <template>
-  <div v-if="user" class="min-h-screen bg-white pb-24 font-sans text-slate-800">
+  <div v-if="user" class="min-h-screen bg-white pb-40 font-sans text-slate-800">
     
     <!-- Clean Header -->
-    <div class="max-w-3xl mx-auto p-6 pt-10">
+    <div class="max-w-4xl mx-auto p-6 pt-10">
         <div class="flex items-start justify-between mb-8">
             <div class="flex items-center gap-6">
                 <!-- Avatar with Colorful Ring -->
@@ -163,77 +163,94 @@ const getRarityColor = (rarity) => {
             </div>
         </div>
 
-    <!-- Inventory / Collection -->
-    <div class="mb-10">
-      <div class="flex items-center justify-between mb-6">
-         <h2 class="text-lg font-bold text-slate-900">Collection</h2>
-         <span class="text-xs font-medium text-slate-400">{{ enrichedInventory.length }} items</span>
-      </div>
-      
-      <div class="grid grid-cols-3 sm:grid-cols-4 gap-4">
-        <div 
-          v-for="(item, index) in enrichedInventory" 
-          :key="item.id"
-          class="group relative rounded-xl p-3 flex flex-col items-center justify-center aspect-[3/4] shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer overflow-hidden border border-transparent"
-          :class="{
-            'bg-slate-100 hover:bg-slate-200': item.rarity === 'Commune',
-            'bg-gradient-to-br from-blue-50 to-indigo-100 border-blue-200': item.rarity === 'Rare',
-            'bg-gradient-to-br from-amber-50 to-orange-100 border-amber-200': item.rarity === 'Légendaire',
-            'bg-gradient-to-br from-fuchsia-50 to-purple-100 border-fuchsia-200': item.rarity === 'Mythique'
-          }"
-        >
-           <!-- Count Badge -->
-           <div v-if="item.count > 1" class="absolute top-2 right-2 bg-white/90 text-slate-800 text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm z-10 transition-colors">
-             x{{ item.count }}
-           </div>
+        <!-- Main Layout Grid: Collection & History -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            
+            <!-- Column 1: Inventory / Collection -->
+            <div>
+              <div class="flex items-center justify-between mb-6">
+                 <h2 class="text-lg font-bold text-slate-900 border-l-4 border-indigo-500 pl-3">Collection</h2>
+                 <span class="text-xs font-medium text-slate-400 bg-slate-50 px-2 py-1 rounded-full border border-slate-100">{{ enrichedInventory.length }} items</span>
+              </div>
+              
+              <div class="grid grid-cols-3 gap-3">
+                <div 
+                  v-for="(item, index) in enrichedInventory" 
+                  :key="item.id"
+                  class="group relative rounded-xl p-2 flex flex-col items-center justify-center aspect-[3/4] shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer overflow-hidden border border-transparent"
+                  :class="{
+                    'bg-slate-50 hover:bg-slate-100': item.rarity === 'Commune',
+                    'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-100': item.rarity === 'Rare',
+                    'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-100': item.rarity === 'Légendaire',
+                    'bg-gradient-to-br from-fuchsia-50 to-purple-50 border-fuchsia-100': item.rarity === 'Mythique'
+                  }"
+                >
+                   <!-- Count Badge -->
+                   <div v-if="item.count > 1" class="absolute top-1.5 right-1.5 bg-white text-slate-800 text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-sm z-10">
+                     x{{ item.count }}
+                   </div>
 
-           <div class="text-4xl mb-3 filter drop-shadow-sm transform group-hover:scale-110 transition-all duration-300 relative z-10">{{ item.image }}</div>
-           
-           <div class="text-center w-full relative z-10">
-               <div class="text-xs font-bold text-slate-700 truncate w-full mb-0.5" :class="{'text-amber-800': item.rarity === 'Légendaire', 'text-indigo-800': item.rarity === 'Rare', 'text-fuchsia-800': item.rarity === 'Mythique'}">{{ item.name }}</div>
-               <div class="text-[9px] font-bold uppercase tracking-wider opacity-60">{{ item.rarity }}</div>
-           </div>
-           
-           <!-- Shine Effect for High Rarity -->
-           <div v-if="['Rare', 'Légendaire', 'Mythique'].includes(item.rarity)" class="absolute inset-0 bg-white/30 skew-x-12 -translate-x-full group-hover:animate-shine transition-all"></div>
-        </div>
-        
-        <!-- Empty State -->
-        <div v-if="enrichedInventory.length === 0" class="col-span-full py-12 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200 text-slate-400 text-sm">
-            Votre collection est vide. Commencez par ouvrir des coffres !
-        </div>
-      </div>
-    </div>
+                   <div class="text-3xl mb-2 filter drop-shadow-sm transform group-hover:scale-110 transition-all duration-300 relative z-10">{{ item.image }}</div>
+                   
+                   <div class="text-center w-full relative z-10">
+                       <div class="text-[10px] font-bold text-slate-700 truncate w-full mb-0.5">{{ item.name }}</div>
+                       <div class="text-[8px] font-bold uppercase tracking-wider opacity-50">{{ item.rarity }}</div>
+                   </div>
+                </div>
+                
+                <!-- Empty State -->
+                <div v-if="enrichedInventory.length === 0" class="col-span-full py-12 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200 text-slate-400 text-sm">
+                    Votre collection est vide.
+                </div>
+              </div>
+            </div>
 
-    <!-- History -->
-    <div class="mb-8">
-         <h3 class="text-lg font-bold text-slate-900 mb-4">Activités récentes</h3>
-         <div class="space-y-4">
-             <div v-if="user.history && user.history.length === 0" class="flex items-start justify-between py-3 border-b border-gray-50 hover:bg-gray-50 rounded-lg px-2 transition-colors -mx-2 opacity-60">
-                 <div class="flex items-start gap-3">
-                     <div class="mt-1 w-2 h-2 rounded-full bg-blue-300"></div>
-                     <div>
-                         <div class="text-sm font-medium text-slate-700">Bienvenue sur l'app !</div>
-                         <div class="text-xs text-slate-400 mt-0.5">Aujourd'hui</div>
+            <!-- Column 2: History (Redesigned) -->
+            <div>
+                 <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-lg font-bold text-slate-900 border-l-4 border-emerald-500 pl-3">Activités récentes</h3>
+                 </div>
+                 
+                 <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                     <div v-if="!user.history || user.history.length === 0" class="p-8 text-center text-slate-400 text-sm">
+                         Aucune activité récente.
+                     </div>
+
+                     <div v-else class="divide-y divide-slate-50">
+                         <div v-for="log in user.history.slice(0, 8)" :key="log.id" class="p-4 flex items-center justify-between hover:bg-slate-50/50 transition-colors group">
+                             <div class="flex items-center gap-4">
+                                 <!-- Dynamic Icon based on action -->
+                                 <div class="w-10 h-10 rounded-full flex items-center justify-center text-lg shrink-0"
+                                    :class="{
+                                        'bg-emerald-100 text-emerald-600': log.action.includes('Missions') || log.action.includes('Poids'),
+                                        'bg-red-100 text-red-600': log.action.includes('Attaque'),
+                                        'bg-blue-100 text-blue-600': log.action.includes('Renfort') || log.action.includes('Quiz'),
+                                        'bg-amber-100 text-amber-600': log.action.includes('Coffre'),
+                                        'bg-slate-100 text-slate-500': !log.action.match(/Missions|Poids|Attaque|Renfort|Coffre/)
+                                    }"
+                                 >
+                                    <span v-if="log.action.includes('Attaque')">⚔️</span>
+                                    <span v-else-if="log.action.includes('Renfort')">🛡️</span>
+                                    <span v-else-if="log.action.includes('Coffre')">🎁</span>
+                                    <span v-else-if="log.action.includes('Quiz')">🧠</span>
+                                    <span v-else>✨</span>
+                                 </div>
+                                 
+                                 <div class="min-w-0">
+                                     <div class="text-sm font-semibold text-slate-800 truncate group-hover:text-slate-900">{{ log.action }}</div>
+                                     <div class="text-[11px] font-medium text-slate-400 mt-0.5">{{ log.date }}</div>
+                                 </div>
+                             </div>
+                             
+                             <div class="font-bold text-xs px-2.5 py-1 rounded-md bg-gray-50 text-slate-600 border border-gray-100 whitespace-nowrap ml-2">
+                                {{ log.gain }}
+                             </div>
+                         </div>
                      </div>
                  </div>
-                 <span class="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded-md">Example</span>
-             </div>
+            </div>
 
-             <div v-for="log in user.history.slice(0, 3)" :key="log.id" class="flex items-start justify-between py-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 rounded-lg px-2 transition-colors -mx-2">
-                 <div class="flex items-start gap-3">
-                     <div class="mt-1 w-2 h-2 rounded-full bg-slate-200"></div>
-                     <div>
-                         <div class="text-sm font-medium text-slate-700">{{ log.action }}</div>
-                         <div class="text-xs text-slate-400 mt-0.5">{{ log.date }}</div>
-                     </div>
-                 </div>
-                 <span class="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md">
-                    {{ log.gain }}
-                 </span>
-             </div>
-         </div>
-    </div>
+        </div>
 
     </div>
   </div>
