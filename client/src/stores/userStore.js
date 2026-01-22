@@ -103,20 +103,88 @@ export const useUserStore = defineStore('user', () => {
             id: Date.now()
         });
 
-        // Keep only last 20 items
         if (currentUser.value.history.length > 20) {
             currentUser.value.history.pop();
         }
     };
 
+    const register = async (pseudo, email, password) => {
+        try {
+            const response = await fetch('http://localhost:5000/api/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ pseudo, email, password }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Registration failed');
+            }
+
+            const userData = await response.json();
+            currentUser.value = userData;
+            localStorage.setItem('user', JSON.stringify(userData));
+            return true;
+        } catch (error) {
+            console.error('Register error:', error);
+            return false;
+        }
+    };
+
+    const joinClan = async (clanId) => {
+        if (!currentUser.value) return;
+        try {
+            const response = await fetch('http://localhost:5000/api/users/clan/join', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: currentUser.value._id, clanId })
+            });
+
+            if (response.ok) {
+                const updatedUser = await response.json();
+                currentUser.value = updatedUser;
+                localStorage.setItem('user', JSON.stringify(updatedUser));
+                return true;
+            }
+        } catch (error) {
+            console.error('Join clan error:', error);
+        }
+        return false;
+    };
+
+    const leaveClan = async () => {
+        if (!currentUser.value) return;
+        try {
+            const response = await fetch('http://localhost:5000/api/users/clan/leave', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: currentUser.value._id })
+            });
+
+            if (response.ok) {
+                const updatedUser = await response.json();
+                currentUser.value = updatedUser;
+                localStorage.setItem('user', JSON.stringify(updatedUser));
+                return true;
+            }
+        } catch (error) {
+            console.error('Leave clan error:', error);
+        }
+        return false;
+    };
+
     return {
         currentUser,
         login,
+        register,
         logout,
         saveUserData,
         addXp,
         addWalletPoints,
         addHistoryItem,
-        getXpRequired
+        getXpRequired,
+        joinClan,
+        leaveClan
     };
 });

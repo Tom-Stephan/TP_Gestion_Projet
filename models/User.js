@@ -59,19 +59,16 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// Virtual for Level (1 level per 1000 points, starting at 1)
-userSchema.virtual('level').get(function() {
-    return Math.floor((this.wallet_points || 0) / 1000) + 1;
-});
+
 
 // Virtual for Title based on level
-userSchema.virtual('title').get(function() {
-    const lvl = Math.floor((this.wallet_points || 0) / 1000) + 1;
-    if (lvl < 2) return 'Moussaillon';
-    if (lvl < 5) return 'Matelot';
-    if (lvl < 10) return 'Quartier-Maitre';
-    if (lvl < 20) return 'Capitaine';
-    return 'Légende des Mers';
+userSchema.virtual('title').get(function () {
+  const lvl = Math.floor((this.wallet_points || 0) / 1000) + 1;
+  if (lvl < 2) return 'Moussaillon';
+  if (lvl < 5) return 'Matelot';
+  if (lvl < 10) return 'Quartier-Maitre';
+  if (lvl < 20) return 'Capitaine';
+  return 'Légende des Mers';
 });
 
 module.exports = mongoose.model("User", userSchema);
