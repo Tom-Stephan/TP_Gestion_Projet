@@ -5,11 +5,13 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useMissionStore } from '../../stores/useMissionStore';
 import { useGameStore } from '../../stores/useGameStore';
+import { useUserStore } from '../../stores/userStore';
 
 const zoom = ref(13);
 const center = ref([48.390394, -4.486076]); // Brest
 const missionStore = useMissionStore();
 const gameStore = useGameStore();
+const userStore = useUserStore();
 
 // Mock Data for Pollution Spots
 const spots = ref([
@@ -140,6 +142,9 @@ onMounted(() => {
 // Handle Attack on Hazard Spot
 const handleAttack = (spotId) => {
   missionStore.startMission(spotId);
+  // Award XP for starting/doing the mission (Simplified for TP)
+  userStore.addXp(500);
+  userStore.saveUserData();
 };
 
 // Handle Reinforce Safe Zone
@@ -147,6 +152,8 @@ const handleReinforce = (spotId) => {
   const spot = spots.value.find(s => s.id === spotId);
   if (spot) {
     console.log(`Reinforced ${spot.name}! +200 XP`);
+    userStore.addXp(200);
+    userStore.saveUserData();
   }
 };
 

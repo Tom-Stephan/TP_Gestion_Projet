@@ -63,6 +63,9 @@ const onLootboxWin = (winnerItem) => {
         }
         userStore.currentUser.inventory_cards.push(winnerItem.name);
         
+        // Award XP (Fixed amount as requested, e.g. 15 XP)
+        userStore.addXp(15);
+        
         // Save to DB and LocalStorage
         userStore.saveUserData();
         localStorage.setItem('user', JSON.stringify(userStore.currentUser));
@@ -75,78 +78,100 @@ const closeModal = () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50 pb-24 font-sans">
+  <div class="min-h-screen bg-gray-50 pb-24 font-sans text-slate-800">
     
-    <!-- Fixed Header -->
-    <div class="sticky top-0 z-30 bg-white/90 backdrop-blur-md shadow-sm p-4 flex justify-between items-center border-b border-gray-100">
-        <h1 class="text-xl font-black text-gray-800 uppercase tracking-tighter">Boutique</h1>
-        <div class="px-4 py-2 bg-yellow-400 rounded-full shadow-lg flex items-center gap-2 font-black text-white transform scale-100 hover:scale-105 transition">
-            <span>🪙</span>
-            <span>{{ wallet }}</span>
+    <!-- Clean Header -->
+    <div class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-gray-100 px-6 py-4 flex justify-between items-center transition-all">
+        <h1 class="text-xl font-bold tracking-tight text-slate-900">Boutique</h1>
+        
+        <!-- Subtle Coin Badge -->
+        <div class="flex items-center gap-2 px-3 py-1.5 bg-yellow-50 text-yellow-700 rounded-full border border-yellow-200 shadow-sm">
+            <span class="text-lg">🪙</span>
+            <span class="text-sm font-semibold tabular-nums">{{ wallet }}</span>
         </div>
     </div>
 
-    <div class="p-6">
-        <!-- Section 1: Lootbox Highlight -->
-        <section class="mb-10">
-            <h2 class="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2">
-                <span>🎁</span> Coffres Mystères
-            </h2>
-            
-            <div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl p-6 shadow-2xl text-white relative overflow-hidden group">
-                <!-- Background decoration -->
-                <div class="absolute -right-10 -bottom-10 text-9xl opacity-20 transform rotate-12 group-hover:rotate-0 transition duration-500">🔮</div>
-                
-                <div class="relative z-10">
-                    <h3 class="text-2xl font-black mb-1">Coffre Légendaire</h3>
-                    <p class="text-indigo-100 text-sm mb-6 max-w-[70%]">Tentez de gagner des cartes rares pour votre collection de clan !</p>
-                    
-                    <div class="flex items-center justify-between mt-8">
-                        <div class="text-3xl filter drop-shadow-md animate-bounce">📦</div>
+    <div class="max-w-3xl mx-auto p-6 space-y-10">
+        <!-- Section 1: Premium Offer (Lootbox) -->
+        <section>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col md:flex-row">
+                <!-- Image Area -->
+                <div class="md:w-1/3 bg-gradient-to-br from-indigo-50 to-purple-50 flex items-center justify-center p-8 border-b md:border-b-0 md:border-r border-gray-100 relative group">
+                    <div class="absolute inset-0 bg-white/50 opacity-0 group-hover:opacity-100 transition duration-700"></div>
+                    <div class="text-7xl filter drop-shadow-lg transform group-hover:scale-110 group-hover:-rotate-3 transition duration-500 cursor-pointer relative z-10" @click="buyLootbox">
+                        🎁
+                    </div>
+                    <!-- Sparkles -->
+                    <div class="absolute top-1/4 right-1/4 text-xl animate-pulse delay-75">✨</div>
+                    <div class="absolute bottom-1/3 left-1/4 text-lg animate-pulse delay-150 text-yellow-400">✨</div>
+                </div>
+
+                <!-- Content Area -->
+                <div class="p-8 flex-1 flex flex-col justify-center">
+                    <div class="flex items-center gap-2 mb-2">
+                         <span class="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-[10px] font-bold uppercase tracking-wider">Populaire</span>
+                    </div>
+                    <h2 class="text-xl font-bold text-slate-900 mb-2">Coffre Légendaire</h2>
+                    <p class="text-slate-500 text-sm mb-6 leading-relaxed">
+                        Obtenez des cartes exclusives pour votre collection. Contient 3 items aléatoires avec une chance accrue de légendaires.
+                    </p>
+
+                    <div class="flex items-center justify-between mt-auto">
+                        <span class="text-sm font-medium text-slate-400">Prix unitaire</span>
                         <button 
                             @click="buyLootbox" 
-                            class="bg-yellow-400 hover:bg-yellow-300 text-yellow-900 font-black py-3 px-6 rounded-xl shadow-[0_4px_0_rgb(200,150,0)] active:shadow-none active:translate-y-1 transition-all uppercase tracking-wide text-sm flex items-center gap-2"
+                            class="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-sm font-medium rounded-lg transition-all shadow-sm flex items-center gap-2 active:scale-95"
                         >
                             <span>Ouvrir</span>
-                            <span class="bg-yellow-600/20 px-2 rounded">{{ lootboxCost }} 🪙</span>
+                            <span class="text-slate-300 font-normal">|</span>
+                            <span>{{ lootboxCost }} 🪙</span>
                         </button>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Section 2: Real Rewards -->
+        <!-- Section 2: Rewards Grid -->
         <section>
-            <h2 class="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2">
-                <span>🎟️</span> Récompenses
-            </h2>
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-lg font-bold text-slate-800">Récompenses disponibles</h2>
+                <span class="text-xs font-medium text-slate-400 cursor-pointer hover:text-slate-600">Tout voir</span>
+            </div>
             
-            <div class="grid grid-cols-2 gap-4">
-                <div v-for="reward in rewards" :key="reward.id" class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col items-center text-center hover:shadow-md transition">
-                    <div class="text-4xl mb-3">{{ reward.img }}</div>
-                    <div class="font-bold text-gray-800 text-sm leading-tight mb-3 h-10 flex items-center">{{ reward.title }}</div>
-                    <button class="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold rounded-lg text-xs transition">
-                        {{ reward.cost }} 🪙
-                    </button>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div v-for="reward in rewards" :key="reward.id" class="group bg-white rounded-xl p-4 border border-gray-200 hover:border-indigo-300 hover:shadow-md transition-all duration-300 cursor-pointer">
+                    <div class="aspect-square bg-gray-50 rounded-lg flex items-center justify-center text-4xl mb-4 group-hover:bg-indigo-50 transition-colors">
+                        {{ reward.img }}
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="font-semibold text-slate-800 text-sm leading-tight h-10 flex items-center">{{ reward.title }}</div>
+                        
+                        <div class="flex items-center justify-between pt-3 border-t border-gray-50">
+                             <span class="text-xs font-semibold text-slate-500">{{ reward.cost }} 🪙</span>
+                             <div class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                 <span class="text-xs">+</span>
+                             </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
     </div>
 
-    <!-- Modal Lootbox -->
+    <!-- Modal Lootbox (Minimalist) -->
     <Teleport to="body">
         <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <!-- Overlay -->
-            <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="closeModal"></div>
+            <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" @click="closeModal"></div>
             
-            <!-- Modal Content -->
-            <div class="bg-white rounded-3xl w-full max-w-md p-6 relative z-10 shadow-2xl animate-pop-in">
-                <button @click="closeModal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 z-50">✕</button>
-                
-                <h3 class="text-center text-xl font-black text-gray-800 mb-6">Ouverture en cours...</h3>
-                
-                <!-- The LootBox Spinner Component -->
-                <div class="flex justify-center mb-4 min-h-[250px] items-center">
+            <div class="bg-white rounded-2xl w-full max-w-sm p-0 shadow-2xl relative z-10 overflow-hidden transform transition-all">
+                <!-- Header -->
+                <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                    <h3 class="font-bold text-slate-800">Ouverture du coffre</h3>
+                    <button @click="closeModal" class="text-gray-400 hover:text-gray-600 transition">✕</button>
+                </div>
+
+                <div class="p-8 flex justify-center min-h-[300px] items-center bg-white">
                    <LootboxSpinner 
                         ref="spinnerRef" 
                         :availableCards="availableCards" 
@@ -154,7 +179,6 @@ const closeModal = () => {
                         @win="onLootboxWin"
                    />
                 </div>
-                
             </div>
         </div>
     </Teleport>
