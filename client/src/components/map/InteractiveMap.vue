@@ -3,9 +3,11 @@ import { ref, onMounted, h } from 'vue';
 import { LMap, LTileLayer, LMarker, LPopup } from '@vue-leaflet/vue-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { useMissionStore } from '../../stores/useMissionStore'; // Import Store
 
 const zoom = ref(13);
 const center = ref([48.390394, -4.486076]); // Brest
+const missionStore = useMissionStore(); // Active Store
 
 // Mock Data for Pollution Spots
 const spots = ref([
@@ -141,7 +143,7 @@ const handleAttack = (spotId) => {
   const spot = spots.value.find(s => s.id === spotId);
   if (spot) {
     console.log(`Attack on ${spot.name}! +500 XP`);
-    // Here you can emit event to parent or call API
+    missionStore.startMission(spotId);
   }
 };
 

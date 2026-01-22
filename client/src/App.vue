@@ -1,5 +1,6 @@
 <script setup>
 import { RouterView, RouterLink } from 'vue-router'
+import MissionOverlay from './components/MissionOverlay.vue';
 </script>
 
 <template>
@@ -7,6 +8,7 @@ import { RouterView, RouterLink } from 'vue-router'
   <div class="h-screen w-screen overflow-hidden bg-gray-50 flex flex-col">
     <!-- Main Content Area (takes all space above nav) -->
     <div class="flex-1 overflow-hidden">
+      <MissionOverlay />
       <RouterView />
     </div>
 
