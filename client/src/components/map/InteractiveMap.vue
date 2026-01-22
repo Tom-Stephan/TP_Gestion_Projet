@@ -13,6 +13,7 @@ const spots = ref([
   { id: 2, lat: 48.3831, lng: -4.4850, status: 'polluted', type: 'waste', name: 'Opération Pneus', description: 'Gros dépôt sauvage signalé !' },
   { id: 3, lat: 48.3885, lng: -4.4900, status: 'polluted', type: 'waste', name: 'Mégots Rue de Siam', description: 'Nettoyage urgent requis.' },
   { id: 4, lat: 48.3950, lng: -4.4500, status: 'clean', type: 'clan', name: 'Bastion de Garde', description: 'Clan allié sécurisé.' },
+  { id: 5, lat: 48.3870, lng: -4.4750, status: 'active', type: 'arcade', name: 'Zone Gaming', description: 'Prouve tes connaissances pour gagner un Boost !' },
 ]);
 
 const getUserLocation = () => {
@@ -80,12 +81,33 @@ const createSafeZoneMarker = () => {
   });
 };
 
+// Create Arcade Marker with Glitch Effect
+const createArcadeMarker = () => {
+  return L.divIcon({
+    html: `
+      <div class="arcade-marker-wrapper">
+        <div class="arcade-glow"></div>
+        <div class="arcade-marker">
+          <div class="marker-icon">🎮</div>
+        </div>
+      </div>
+    `,
+    iconSize: [72, 72],
+    iconAnchor: [36, 72],
+    popupAnchor: [0, -72],
+    className: 'arcade-marker-icon'
+  });
+};
+
 const getMarkerIcon = (spot) => {
   if (spot.type === 'clan') {
     // Use safe zone marker for clan headquarters
     if (spot.status === 'clean') {
       return createSafeZoneMarker();
     }
+  } else if (spot.type === 'arcade') {
+    // Use arcade marker for gaming zones
+    return createArcadeMarker();
   } else if (spot.type === 'waste') {
     // Use hazard marker for polluted waste
     if (spot.status === 'polluted') {
@@ -128,6 +150,15 @@ const handleReinforce = (spotId) => {
   const spot = spots.value.find(s => s.id === spotId);
   if (spot) {
     console.log(`Reinforced ${spot.name}! +200 XP`);
+    // Here you can emit event to parent or call API
+  }
+};
+
+// Handle Play Arcade Challenge
+const handlePlay = (spotId) => {
+  const spot = spots.value.find(s => s.id === spotId);
+  if (spot) {
+    console.log(`Playing arcade challenge at ${spot.name}! Bonus x2`);
     // Here you can emit event to parent or call API
   }
 };
@@ -181,6 +212,27 @@ const handleReinforce = (spotId) => {
               <span class="btn-icon">🛡️</span>
               <span class="btn-text">RENFORCER</span>
               <span class="btn-xp">(+200 XP)</span>
+            </button>
+          </div>
+        </l-popup>
+
+        <!-- Arcade Popup for Gaming Challenges -->
+        <l-popup v-else-if="spot.type === 'arcade'" class="arcade-popup-wrapper">
+          <div class="arcade-popup-content">
+            <div class="arcade-status-badge">
+              <span class="badge-icon">🎮</span>
+              <span class="badge-text">DÉFI ARCADE</span>
+            </div>
+            <h3 class="arcade-title">{{ spot.name }}</h3>
+            <p class="arcade-description">{{ spot.description }}</p>
+            <div class="coin-container">
+              <span class="rotating-coin">🪙</span>
+              <span class="coin-text">x2 BONUS</span>
+            </div>
+            <button @click="handlePlay(spot.id)" class="arcade-play-btn">
+              <span class="btn-icon">⚡</span>
+              <span class="btn-text">JOUER</span>
+              <span class="btn-bonus">(Bonus x2)</span>
             </button>
           </div>
         </l-popup>
@@ -399,6 +451,100 @@ const handleReinforce = (spotId) => {
 }
 
 :deep(.safe-zone-marker-wrapper:hover) {
+  z-index: 1000;
+}
+
+/* Arcade Marker Styling - Gaming with Glitch Effect */
+:deep(.arcade-marker-icon) {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+:deep(.arcade-marker-wrapper) {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+}
+
+:deep(.arcade-glow) {
+  position: absolute;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(236, 72, 153, 0.4) 0%, rgba(139, 92, 246, 0.2) 70%, transparent 100%);
+  animation: arcade-glitch-pulse 0.3s ease-in-out infinite;
+  box-shadow: 
+    0 0 30px rgba(236, 72, 153, 0.8),
+    0 0 60px rgba(139, 92, 246, 0.6),
+    inset 0 0 20px rgba(0, 255, 255, 0.1);
+}
+
+@keyframes arcade-glitch-pulse {
+  0%, 100% {
+    transform: scale(1) translateX(0) translateY(0);
+    opacity: 0.8;
+    box-shadow: 
+      0 0 30px rgba(236, 72, 153, 0.8),
+      0 0 60px rgba(139, 92, 246, 0.6),
+      inset 0 0 20px rgba(0, 255, 255, 0.1);
+  }
+  33% {
+    transform: scale(1.1) translateX(-2px) translateY(2px);
+    opacity: 1;
+  }
+  66% {
+    transform: scale(1.05) translateX(2px) translateY(-2px);
+    opacity: 0.9;
+  }
+}
+
+:deep(.arcade-marker) {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #ff006e 0%, #8b5cf6 50%, #d946ef 100%);
+  border-radius: 8px;
+  border: 2px solid #00ffff;
+  z-index: 10;
+  animation: arcade-marker-bounce 0.5s ease-in-out infinite;
+  box-shadow: 0 0 25px rgba(236, 72, 153, 0.9);
+}
+
+@keyframes arcade-marker-bounce {
+  0%, 100% { 
+    transform: scale(1) translateY(0);
+    box-shadow: 0 0 25px rgba(236, 72, 153, 0.9);
+  }
+  50% { 
+    transform: scale(1.08) translateY(-3px);
+    box-shadow: 0 0 35px rgba(236, 72, 153, 1), 0 0 50px rgba(139, 92, 246, 0.7);
+  }
+}
+
+:deep(.arcade-marker .marker-icon) {
+  font-size: 40px;
+  text-shadow: 0 0 10px #ffff00;
+  animation: arcade-icon-flash 0.4s ease-in-out infinite;
+}
+
+@keyframes arcade-icon-flash {
+  0%, 100% { 
+    text-shadow: 0 0 10px #ffff00;
+  }
+  50% { 
+    text-shadow: 0 0 20px #ffff00, 0 0 30px #ff00ff;
+  }
+}
+
+:deep(.arcade-marker-wrapper:hover) {
   z-index: 1000;
 }
 
@@ -916,6 +1062,261 @@ const handleReinforce = (spotId) => {
 
 .popup-action-btn:active {
   transform: translateY(0);
+}
+
+/* Arcade Popup Wrapper - Remove Leaflet defaults */
+:deep(.arcade-popup-wrapper .leaflet-popup-content-wrapper) {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+:deep(.arcade-popup-wrapper .leaflet-popup-content) {
+  margin: 0 !important;
+  width: 100% !important;
+  padding: 0 !important;
+}
+
+:deep(.arcade-popup-wrapper .leaflet-popup-tip-container) {
+  display: none !important;
+}
+
+:deep(.arcade-popup-wrapper .leaflet-popup-tip) {
+  display: none !important;
+}
+
+/* Arcade Popup Content Styling */
+.arcade-popup-content {
+  position: relative;
+  background: linear-gradient(135deg, #1a0033 0%, #2d0052 50%, #0f001a 100%);
+  border-radius: 20px;
+  padding: 16px 20px;
+  overflow: hidden;
+  box-shadow: 
+    0 0 40px rgba(236, 72, 153, 0.7),
+    0 0 80px rgba(139, 92, 246, 0.5),
+    0 0 120px rgba(236, 72, 153, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(236, 72, 153, 0.8);
+  animation: arcade-neon-pulse 2.5s ease-in-out infinite;
+  max-width: 300px;
+}
+
+@keyframes arcade-neon-pulse {
+  0%, 100% {
+    box-shadow: 
+      0 0 40px rgba(236, 72, 153, 0.7),
+      0 0 80px rgba(139, 92, 246, 0.5),
+      0 0 120px rgba(236, 72, 153, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    border-color: rgba(236, 72, 153, 0.8);
+  }
+  50% {
+    box-shadow: 
+      0 0 60px rgba(236, 72, 153, 0.9),
+      0 0 100px rgba(139, 92, 246, 0.7),
+      0 0 150px rgba(236, 72, 153, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    border-color: rgba(236, 72, 153, 1);
+  }
+}
+
+/* Arcade Status Badge */
+.arcade-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-weight: bold;
+  font-size: 0.85rem;
+  background: rgba(236, 72, 153, 0.15);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border-left: 3px solid #00ffff;
+  border-right: 3px solid #ff00ff;
+}
+
+.arcade-status-badge .badge-icon {
+  font-size: 1.1rem;
+  animation: arcade-bounce 0.6s ease-in-out infinite;
+}
+
+@keyframes arcade-bounce {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-4px) scale(1.1); }
+}
+
+.arcade-status-badge .badge-text {
+  color: #ff00ff;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px #ff00ff, 0 2px 4px rgba(0, 0, 0, 0.8);
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+}
+
+/* Arcade Title */
+.arcade-title {
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: #00ffff;
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+  text-shadow: 
+    0 0 10px #00ffff,
+    0 0 20px #00ffff,
+    0 3px 10px rgba(0, 0, 0, 0.8);
+  letter-spacing: 1px;
+  line-height: 1.2;
+  font-family: 'Courier New', monospace;
+}
+
+/* Arcade Description */
+.arcade-description {
+  font-size: 0.9rem;
+  color: #ffffff;
+  margin: 0 0 12px 0;
+  line-height: 1.4;
+  text-shadow: 0 2px 8px rgba(236, 72, 153, 0.6);
+  font-weight: 500;
+  text-align: center;
+}
+
+/* Coin Animation Container */
+.coin-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  background: rgba(236, 72, 153, 0.1);
+  border-radius: 10px;
+  border: 1px solid rgba(139, 92, 246, 0.4);
+}
+
+.rotating-coin {
+  font-size: 1.5rem;
+  display: inline-block;
+  animation: coin-spin 1.5s linear infinite;
+}
+
+@keyframes coin-spin {
+  0% { transform: rotateY(0deg) scale(1); }
+  50% { transform: rotateY(90deg) scale(0.6); }
+  100% { transform: rotateY(360deg) scale(1); }
+}
+
+.coin-text {
+  font-size: 0.85rem;
+  color: #00ffff;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 0 0 8px #00ffff;
+  font-weight: bold;
+  font-family: 'Courier New', monospace;
+}
+
+/* Play Button - Pill Shape */
+.arcade-play-btn {
+  width: 100%;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, #ff006e 0%, #8b5cf6 50%, #d946ef 100%);
+  color: #ffffff;
+  border: 2px solid #00ffff;
+  border-radius: 50px;
+  font-size: 0.95rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  letter-spacing: 1.5px;
+  position: relative;
+  overflow: hidden;
+  
+  /* Intense Neon Glow */
+  box-shadow: 
+    0 0 20px rgba(236, 72, 153, 0.8),
+    0 0 40px rgba(139, 92, 246, 0.6),
+    0 0 60px rgba(0, 255, 255, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  
+  animation: button-arcade-glow 1.5s ease-in-out infinite;
+}
+
+@keyframes button-arcade-glow {
+  0%, 100% {
+    box-shadow: 
+      0 0 20px rgba(236, 72, 153, 0.8),
+      0 0 40px rgba(139, 92, 246, 0.6),
+      0 0 60px rgba(0, 255, 255, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    border-color: #00ffff;
+  }
+  50% {
+    box-shadow: 
+      0 0 30px rgba(236, 72, 153, 1),
+      0 0 60px rgba(139, 92, 246, 0.8),
+      0 0 100px rgba(0, 255, 255, 0.6),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    border-color: #ff00ff;
+  }
+}
+
+.arcade-play-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 
+    0 0 40px rgba(236, 72, 153, 1),
+    0 0 80px rgba(139, 92, 246, 0.8),
+    0 0 120px rgba(0, 255, 255, 0.6),
+    0 6px 20px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  background: linear-gradient(135deg, #ff3385 0%, #a78bfa 50%, #e879f9 100%);
+}
+
+.arcade-play-btn:active {
+  transform: translateY(0) scale(1);
+  box-shadow: 
+    0 0 20px rgba(236, 72, 153, 0.8),
+    0 0 40px rgba(139, 92, 246, 0.6),
+    inset 0 3px 8px rgba(0, 0, 0, 0.3);
+}
+
+.arcade-play-btn .btn-icon {
+  font-size: 1.3rem;
+  animation: lightning-flash 0.4s ease-in-out infinite;
+}
+
+@keyframes lightning-flash {
+  0%, 100% { 
+    text-shadow: 0 0 5px #ffff00;
+    transform: scale(1);
+  }
+  50% { 
+    text-shadow: 0 0 15px #ffff00, 0 0 25px #ff00ff;
+    transform: scale(1.1);
+  }
+}
+
+.arcade-play-btn .btn-text {
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  font-family: 'Courier New', monospace;
+}
+
+.arcade-play-btn .btn-bonus {
+  font-size: 0.8rem;
+  font-weight: 700;
+  opacity: 0.9;
+  margin-left: 2px;
+  color: #ffff00;
 }
 
 /* Leaflet Container Fixes */
