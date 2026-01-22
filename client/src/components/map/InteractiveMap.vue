@@ -3,7 +3,6 @@ import { ref, onMounted, h } from 'vue';
 import { LMap, LTileLayer, LMarker, LPopup } from '@vue-leaflet/vue-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import HazardPopup from './HazardPopup.vue';
 
 const zoom = ref(13);
 const center = ref([48.390394, -4.486076]); // Brest
@@ -63,9 +62,30 @@ const createHazardMarker = () => {
   });
 };
 
+// Create Safe Zone Marker with Force Field Effect
+const createSafeZoneMarker = () => {
+  return L.divIcon({
+    html: `
+      <div class="safe-zone-marker-wrapper">
+        <div class="force-field-halo"></div>
+        <div class="safe-zone-marker">
+          <div class="marker-icon">🏰</div>
+        </div>
+      </div>
+    `,
+    iconSize: [72, 72],
+    iconAnchor: [36, 72],
+    popupAnchor: [0, -72],
+    className: 'safe-zone-marker-icon'
+  });
+};
+
 const getMarkerIcon = (spot) => {
   if (spot.type === 'clan') {
-    return createDivIcon('🏰', 'clan');
+    // Use safe zone marker for clan headquarters
+    if (spot.status === 'clean') {
+      return createSafeZoneMarker();
+    }
   } else if (spot.type === 'waste') {
     // Use hazard marker for polluted waste
     if (spot.status === 'polluted') {
@@ -102,6 +122,15 @@ const handleAttack = (spotId) => {
     // Here you can emit event to parent or call API
   }
 };
+
+// Handle Reinforce Safe Zone
+const handleReinforce = (spotId) => {
+  const spot = spots.value.find(s => s.id === spotId);
+  if (spot) {
+    console.log(`Reinforced ${spot.name}! +200 XP`);
+    // Here you can emit event to parent or call API
+  }
+};
 </script>
 
 <template>
@@ -135,6 +164,23 @@ const handleAttack = (spotId) => {
               <span class="btn-icon">⚔️</span>
               <span class="btn-text">ATTAQUER</span>
               <span class="btn-xp">(500 XP)</span>
+            </button>
+          </div>
+        </l-popup>
+
+        <!-- Safe Zone Popup for Protected Clan Headquarters -->
+        <l-popup v-else-if="spot.status === 'clean' && spot.type === 'clan'" class="safe-zone-popup-wrapper">
+          <div class="safe-zone-popup-content">
+            <div class="safe-zone-status-badge">
+              <span class="badge-icon">✓</span>
+              <span class="badge-text">ZONE ALLIÉE</span>
+            </div>
+            <h3 class="safe-zone-title">{{ spot.name }}</h3>
+            <p class="safe-zone-description">{{ spot.description }}</p>
+            <button @click="handleReinforce(spot.id)" class="safe-zone-action-btn">
+              <span class="btn-icon">🛡️</span>
+              <span class="btn-text">RENFORCER</span>
+              <span class="btn-xp">(+200 XP)</span>
             </button>
           </div>
         </l-popup>
@@ -269,6 +315,90 @@ const handleAttack = (spotId) => {
 }
 
 :deep(.hazard-marker-wrapper:hover) {
+  z-index: 1000;
+}
+
+/* Safe Zone Marker Styling - Protective with Force Field Halo */
+:deep(.safe-zone-marker-icon) {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+:deep(.safe-zone-marker-wrapper) {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+:deep(.force-field-halo) {
+  position: absolute;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(34, 197, 94, 0.5) 0%, rgba(15, 136, 96, 0.2) 70%, transparent 100%);
+  animation: force-field-pulse 4s ease-in-out infinite;
+  box-shadow: 
+    0 0 30px rgba(34, 197, 94, 0.7),
+    0 0 60px rgba(15, 136, 96, 0.4),
+    inset 0 0 20px rgba(52, 211, 153, 0.15);
+}
+
+@keyframes force-field-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.6;
+    box-shadow: 
+      0 0 30px rgba(34, 197, 94, 0.7),
+      0 0 60px rgba(15, 136, 96, 0.4),
+      inset 0 0 20px rgba(52, 211, 153, 0.15);
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.9;
+    box-shadow: 
+      0 0 50px rgba(34, 197, 94, 0.9),
+      0 0 100px rgba(15, 136, 96, 0.6),
+      inset 0 0 30px rgba(52, 211, 153, 0.25);
+  }
+}
+
+:deep(.safe-zone-marker) {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #34d399 0%, #22c55e 50%, #15803d 100%);
+  border-radius: 8px;
+  border: 2px solid #22c55e;
+  z-index: 10;
+  animation: safe-zone-marker-glow 2s ease-in-out infinite;
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.8);
+}
+
+@keyframes safe-zone-marker-glow {
+  0%, 100% { 
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.8);
+    transform: scale(1);
+  }
+  50% { 
+    box-shadow: 0 0 30px rgba(34, 197, 94, 1);
+    transform: scale(1.05);
+  }
+}
+
+:deep(.safe-zone-marker .marker-icon) {
+  font-size: 40px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+:deep(.safe-zone-marker-wrapper:hover) {
   z-index: 1000;
 }
 
@@ -505,6 +635,203 @@ const handleAttack = (spotId) => {
 }
 
 .btn-xp {
+  font-size: 0.85rem;
+  font-weight: 700;
+  opacity: 0.95;
+  margin-left: 2px;
+}
+
+/* Safe Zone Popup Wrapper - Remove Leaflet defaults */
+:deep(.safe-zone-popup-wrapper .leaflet-popup-content-wrapper) {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+:deep(.safe-zone-popup-wrapper .leaflet-popup-content) {
+  margin: 0 !important;
+  width: 100% !important;
+  padding: 0 !important;
+}
+
+:deep(.safe-zone-popup-wrapper .leaflet-popup-tip-container) {
+  display: none !important;
+}
+
+:deep(.safe-zone-popup-wrapper .leaflet-popup-tip) {
+  display: none !important;
+}
+
+/* Safe Zone Popup Content Styling */
+.safe-zone-popup-content {
+  position: relative;
+  background: linear-gradient(135deg, #0d5c3c 0%, #0f8860 50%, #0d5c3c 100%);
+  border-radius: 20px;
+  padding: 16px 20px;
+  overflow: hidden;
+  box-shadow: 
+    0 0 30px rgba(15, 136, 96, 0.8),
+    0 0 60px rgba(34, 197, 94, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  border: 2px solid rgba(52, 211, 153, 0.7);
+  animation: safe-zone-pulse 3s ease-in-out infinite;
+  max-width: 300px;
+}
+
+@keyframes safe-zone-pulse {
+  0%, 100% {
+    box-shadow: 
+      0 0 30px rgba(15, 136, 96, 0.8),
+      0 0 60px rgba(34, 197, 94, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+  50% {
+    box-shadow: 
+      0 0 50px rgba(15, 136, 96, 1),
+      0 0 100px rgba(34, 197, 94, 0.6),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+}
+
+/* Safe Zone Status Badge */
+.safe-zone-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-weight: bold;
+  font-size: 0.85rem;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border-left: 3px solid #fbbf24;
+}
+
+.safe-zone-status-badge .badge-icon {
+  font-size: 1rem;
+  animation: badge-glow 1.5s ease-in-out infinite;
+}
+
+@keyframes badge-glow {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); opacity: 1; }
+}
+
+.safe-zone-status-badge .badge-text {
+  color: #fbbf24;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+/* Safe Zone Title */
+.safe-zone-title {
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: #ffffff;
+  margin: 0 0 4px 0;
+  text-transform: uppercase;
+  text-shadow: 0 3px 8px rgba(0, 0, 0, 0.6);
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+}
+
+/* Safe Zone Description */
+.safe-zone-description {
+  font-size: 0.85rem;
+  color: #e0f2fe;
+  margin: 0 0 16px 0;
+  line-height: 1.4;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  font-weight: 500;
+  font-style: italic;
+}
+
+/* Safe Zone Reinforce Button */
+.safe-zone-action-btn {
+  width: 100%;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 50%, #15803d 100%);
+  color: #ffffff;
+  border: 2px solid #86efac;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  letter-spacing: 1px;
+  position: relative;
+  overflow: hidden;
+  
+  /* 3D Shadow Effect */
+  box-shadow: 
+    0 6px 12px rgba(22, 163, 74, 0.4),
+    0 4px 8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  
+  animation: button-hover-glow 2s ease-in-out infinite;
+}
+
+@keyframes button-hover-glow {
+  0%, 100% {
+    box-shadow: 
+      0 6px 12px rgba(22, 163, 74, 0.4),
+      0 4px 8px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    border-color: #86efac;
+  }
+  50% {
+    box-shadow: 
+      0 8px 16px rgba(34, 197, 94, 0.6),
+      0 6px 12px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    border-color: #bbf7d0;
+  }
+}
+
+.safe-zone-action-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 
+    0 10px 20px rgba(22, 163, 74, 0.6),
+    0 6px 12px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  background: linear-gradient(135deg, #34d399 0%, #22c55e 50%, #16a34a 100%);
+}
+
+.safe-zone-action-btn:active {
+  transform: translateY(0);
+  box-shadow: 
+    0 4px 8px rgba(22, 163, 74, 0.4),
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 3px 6px rgba(0, 0, 0, 0.2);
+}
+
+.safe-zone-action-btn .btn-icon {
+  font-size: 1.2rem;
+  animation: shield-rotate 2s ease-in-out infinite;
+}
+
+@keyframes shield-rotate {
+  0%, 100% { transform: rotate(0deg); }
+  15% { transform: rotate(-3deg); }
+  30% { transform: rotate(3deg); }
+  45% { transform: rotate(0deg); }
+}
+
+.safe-zone-action-btn .btn-text {
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+}
+
+.safe-zone-action-btn .btn-xp {
   font-size: 0.85rem;
   font-weight: 700;
   opacity: 0.95;
