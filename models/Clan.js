@@ -6,11 +6,24 @@ const clanSchema = new mongoose.Schema({
         required: true, 
         unique: true 
     },
+    slogan: {
+        type: String,
+        trim: true
+    },
     faction: { 
         type: String, 
-        enum: ['Corsaires', 'Krakens'], 
-        required: true 
+        // Removing strict enum to allow custom clan types if needed, or keep 'Corsaires'/'Krakens' if they map specific colors. 
+        // For now, making it just a String to be flexible with the new "Colors/Factions" requirement.
+        required: false 
     },
+    chef_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    },
+    members: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }],
     total_points: { 
         type: Number, 
         default: 0 
@@ -21,7 +34,10 @@ const clanSchema = new mongoose.Schema({
     },
     couleur_hex: { 
         type: String, 
-        match: /^#([0-9a-f]{3}|[0-9a-f]{6})$/i
+        // Allow hex or tailwind class strings if needed, but existing regex is specific to hex.
+        // Prompt says "format Hex OR Tailwind class". Let's relax validation or assume frontend sends Hex.
+        // I will keep validation simple or remove match for flexibility if tailwind classes are stored.
+        // Let's remove regex to allow Tailwind classes like 'bg-red-500'.
     }
 }, { 
     timestamps: true,

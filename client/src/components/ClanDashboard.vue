@@ -1,7 +1,29 @@
 <script setup>
 import { ref, computed } from 'vue';
+import { useUserStore } from '../stores/userStore';
+import CreateClanModal from './CreateClanModal.vue';
 
-// Mock Data
+const userStore = useUserStore();
+const showCreateModal = ref(false);
+
+// Check if user has a clan (assuming populated object or ID)
+const userClan = computed(() => {
+    if (!userStore.currentUser?.clan_id) return null;
+    // Handle case where it might be just an ID string if not populated, or object
+    return typeof userStore.currentUser.clan_id === 'object' 
+        ? userStore.currentUser.clan_id 
+        : { _id: userStore.currentUser.clan_id, nom: 'Mon Clan' };
+});
+
+const handleClanCreated = (newClan) => {
+    // Update local user state immediately
+    if (userStore.currentUser) {
+        userStore.currentUser.clan_id = newClan;
+        localStorage.setItem('user', JSON.stringify(userStore.currentUser));
+    }
+};
+
+// Mock Data (Static for now, could fetch from API)
 const factions = ref({
   corsaires: { name: 'Corsaires', score: 12500, color: 'bg-blue-600', textColor: 'text-blue-600', borderColor: 'border-blue-600' },
   krakens: { name: 'Krakens', score: 10800, color: 'bg-red-600', textColor: 'text-red-600', borderColor: 'border-red-600' }
@@ -21,7 +43,7 @@ const krakensPercent = computed(() => (factions.value.krakens.score / totalScore
 </script>
 
 <template>
-  <div class="p-6 max-w-md mx-auto font-sans">
+  <div class="p-6 max-w-md mx-auto font-sans pb-24">
     <!-- Header Clash -->
     <div class="mb-8 text-center relative">
       <h2 class="text-3xl font-black uppercase tracking-wider text-gray-800 drop-shadow-md">
@@ -29,6 +51,29 @@ const krakensPercent = computed(() => (factions.value.krakens.score / totalScore
       </h2>
       <div class="absolute -top-4 -left-4 text-4xl animate-bounce">💣</div>
       <div class="absolute -top-4 -right-4 text-4xl animate-bounce delay-100">💥</div>
+    </div>
+
+    <!-- My Clan Section -->
+    <div class="mb-8">
+        <div v-if="userClan" class="bg-slate-800 rounded-2xl p-6 text-white shadow-xl border-t-4 border-yellow-400 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl">🛡️</div>
+            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Mon Allégeance</h3>
+            <div class="text-2xl font-black mb-1">{{ userClan.nom }}</div>
+            <div class="text-sm italic text-yellow-400" v-if="userClan.slogan">"{{ userClan.slogan }}"</div>
+            <div v-if="userClan.chef_id === userStore.currentUser?._id" class="mt-4 inline-block bg-yellow-500 text-black text-xs font-bold px-2 py-1 rounded">👑 Chef de Clan</div>
+        </div>
+
+        <div v-else class="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-6 text-center text-white shadow-xl transform transition hover:scale-102">
+            <div class="text-4xl mb-4">⚔️</div>
+            <h3 class="text-xl font-bold mb-2">Sans Bannière ?</h3>
+            <p class="text-purple-100 text-sm mb-6">Rejoignez la légende ou écrivez la vôtre.</p>
+            <button 
+                @click="showCreateModal = true"
+                class="w-full bg-white text-indigo-700 font-black py-3 rounded-xl shadow-lg hover:bg-gray-50 transition-colors uppercase tracking-wider"
+            >
+                Fonder un Clan
+            </button>
+        </div>
     </div>
 
     <!-- Progress Bar Battle -->
@@ -104,6 +149,14 @@ const krakensPercent = computed(() => (factions.value.krakens.score / totalScore
         </div>
       </div>
     </div>
+
+    <!-- Modal -->
+    <CreateClanModal 
+        :is-open="showCreateModal" 
+        :user-id="userStore.currentUser?._id"
+        @close="showCreateModal = false"
+        @clan-created="handleClanCreated"
+    />
   </div>
 </template>
 
