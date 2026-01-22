@@ -1,8 +1,10 @@
 <script setup>
-import { RouterView, RouterLink } from 'vue-router'
+import { RouterView, RouterLink, useRoute } from 'vue-router'
 import MissionOverlay from './components/MissionOverlay.vue';
 import QuizOverlay from './components/QuizOverlay.vue';
 import BonusHud from './components/BonusHud.vue';
+
+const route = useRoute();
 </script>
 
 <template>
@@ -12,7 +14,7 @@ import BonusHud from './components/BonusHud.vue';
     <div class="flex-1 overflow-y-auto no-scrollbar relative">
       <MissionOverlay />
       <QuizOverlay />
-      <BonusHud />
+      <BonusHud v-if="route.path === '/'" />
       <RouterView />
     </div>
 
