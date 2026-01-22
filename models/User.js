@@ -27,6 +27,14 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    xp: {
+      type: Number,
+      default: 0,
+    },
+    level: {
+      type: Number,
+      default: 1,
+    },
     clan_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Clan",
@@ -34,6 +42,13 @@ const userSchema = new mongoose.Schema(
     inventory_cards: [
       {
         type: String, // Stocke les IDs ou noms des cartes collectées
+      },
+    ],
+    history: [
+      {
+        action: String,
+        date: String,
+        gain: String,
       },
     ],
   },
