@@ -9,7 +9,7 @@ import BonusHud from './components/BonusHud.vue';
   <!-- App Shell Layout -->
   <div class="h-screen w-screen overflow-hidden bg-gray-50 flex flex-col">
     <!-- Main Content Area (takes all space above nav) -->
-    <div class="flex-1 overflow-hidden">
+    <div class="flex-1 overflow-y-auto no-scrollbar relative">
       <MissionOverlay />
       <QuizOverlay />
       <BonusHud />
@@ -90,5 +90,14 @@ import BonusHud from './components/BonusHud.vue';
 
 :deep(.animate-pulse) {
   animation: pulse-button 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Utilitaires globaux */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 </style>
