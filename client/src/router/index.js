@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 import HomeView from '../views/HomeView.vue'
 import ClanDashboard from '../components/ClanDashboard.vue' // Reusing component as view for now
+import ClanProfileView from '../views/ClanProfileView.vue'
 import UserProfile from '../components/UserProfile.vue'
 import ShopView from '../views/ShopView.vue'
 import LoginView from '../views/LoginView.vue'
@@ -18,6 +19,12 @@ const router = createRouter({
       path: '/clan',
       name: 'clan',
       component: ClanDashboard
+    },
+    {
+      path: '/clan/:id',
+      name: 'clan-profile',
+      component: ClanProfileView,
+      meta: { requiresAuth: true }
     },
     {
       path: '/scan',
