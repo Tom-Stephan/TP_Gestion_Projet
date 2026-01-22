@@ -1,8 +1,15 @@
 <script setup>
-import { ref, nextTick } from 'vue';
+import { ref, nextTick, computed } from 'vue';
+import { useUserStore } from '../stores/userStore';
+import { useRouter } from 'vue-router';
 import LootboxSpinner from '../components/LootboxSpinner.vue';
 
-const wallet = ref(1250); // Solde initial fictif
+const userStore = useUserStore();
+const router = useRouter();
+
+// Use store wallet or 0 if not connected
+const wallet = computed(() => userStore.currentUser?.wallet_points || 0);
+
 const isModalOpen = ref(false);
 const lootboxCost = 500;
 const spinnerRef = ref(null);
@@ -23,10 +30,18 @@ const availableCards = [
     { name: "Etoile de Mer", rarity: "Rare" },
 ];
 
-// Trigger purchase flow
 const buyLootbox = async () => {
+    if (!userStore.currentUser) {
+        router.push('/login');
+        return;
+    }
+
     if (wallet.value >= lootboxCost) {
-        wallet.value -= lootboxCost;
+        // Direct mutation is allowed in Pinia standard usage
+        userStore.currentUser.wallet_points -= lootboxCost;
+        // Persist change
+        userStore.saveUserData();
+        
         isModalOpen.value = true;
         // Wait for modal to render then start spin
         await nextTick();
@@ -35,6 +50,22 @@ const buyLootbox = async () => {
         }
     } else {
         alert("Pas assez d'EcoCoins ! 😢");
+    }
+};
+
+const onLootboxWin = (winnerItem) => {
+    // Add item to inventory (Store persistence handles this for session)
+    if (userStore.currentUser) {
+        // Mongoose schema uses array of strings. 
+        // We push the name of the card.
+        if (!userStore.currentUser.inventory_cards) {
+            userStore.currentUser.inventory_cards = [];
+        }
+        userStore.currentUser.inventory_cards.push(winnerItem.name);
+        
+        // Save to DB and LocalStorage
+        userStore.saveUserData();
+        localStorage.setItem('user', JSON.stringify(userStore.currentUser));
     }
 };
 
@@ -120,6 +151,7 @@ const closeModal = () => {
                         ref="spinnerRef" 
                         :availableCards="availableCards" 
                         @close="closeModal"
+                        @win="onLootboxWin"
                    />
                 </div>
                 
