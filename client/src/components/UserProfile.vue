@@ -1,33 +1,76 @@
 <script setup>
-import { ref } from 'vue';
+import { computed, onMounted } from 'vue';
+import { useUserStore } from '../stores/userStore';
+import { useRouter } from 'vue-router';
 
-// Mock Data
-const user = ref({
-  pseudo: 'Lucas_Breizh',
-  level: 5,
-  title: "Éboueur d'Élite",
-  xp: 75, // Percentage
-  wallet: 1250,
-  stats: {
-    weight: 42,
-    missions: 12
-  },
-  clan: {
-    name: 'Les Corsaires',
-    faction: 'Corsaires'
-  },
-  inventory: [
-    { id: 1, name: 'Crabe Vert', rarity: 'Commune', image: '🦀' },
-    { id: 2, name: 'Loutre', rarity: 'Légendaire', image: '🦦' },
-    { id: 3, name: 'Vieux Filet', rarity: 'Commune', image: '🕸️' },
-    { id: 4, name: 'Etoile de Mer', rarity: 'Rare', image: '⭐' },
-    { id: 5, name: 'Bouteille MSG', rarity: 'Rare', image: '🍾' },
-  ],
-  history: [
-    { id: 1, action: 'Mission "Plage du Moulin" complétée', date: 'Il y a 2h', gain: '+500 XP' },
-    { id: 2, action: 'Lootbox ouverte', date: 'Il y a 1j', gain: '+1 Carte' },
-    { id: 3, action: 'Signalement validé', date: 'Il y a 2j', gain: '+50 Coins' },
-  ]
+const userStore = useUserStore();
+const router = useRouter();
+
+const cardMap = {
+  // Mapping names from Shop/Lootbox
+  'Crabe Vert': { rarity: 'Commune', image: '🦀' },
+  'Loutre': { rarity: 'Légendaire', image: '🦦' },
+  'Vieux Filet': { rarity: 'Commune', image: '🕸️' },
+  'Etoile de Mer': { rarity: 'Rare', image: '⭐' },
+  'Bouteille MSG': { rarity: 'Rare', image: '🍾' },
+  'Goéland': { rarity: 'Commune', image: '🐦' },
+  'Dauphin': { rarity: 'Légendaire', image: '🐬' },
+  
+  // Mapping IDs from Seed Data
+  'card_001': { rarity: 'Commune', image: '🦀', name: 'Crabe Vert (Ancien)' },
+  'card_005': { rarity: 'Rare', image: '🍾', name: 'Bouteille à la mer' },
+  'card_010': { rarity: 'Légendaire', image: '🦦', name: 'Loutre' },
+  'card_999': { rarity: 'Mythique', image: '👑', name: 'Couronne Perdue' },
+  'card_777': { rarity: 'Rare', image: '⭐', name: 'Etoile de Mer' }
+};
+
+const handleLogout = () => {
+  userStore.logout();
+  router.push('/login');
+};
+
+const user = computed(() => {
+  if (!userStore.currentUser) return null;
+  // Merge with defaults to avoid undefined access
+  const defaultUser = {
+    stats: { weight: 0, missions: 0 },
+    history: [],
+    wallet_points: 0,
+    inventory_cards: [],
+    clan: { name: 'Sans Clan', faction: 'Aucune' },
+    xp: 0,
+    level: 1,
+    title: 'Novice',
+    pseudo: 'Inconnu'
+  };
+
+  // Deep merge or specific override is better to ensure nested stats exist
+  return {
+    ...defaultUser,
+    ...userStore.currentUser,
+    stats: { ...defaultUser.stats, ...(userStore.currentUser?.stats || {}) },
+    clan: { ...defaultUser.clan, ...(userStore.currentUser?.clan || {}) }
+  };
+});
+
+const enrichedInventory = computed(() => {
+  if (!user.value || !user.value.inventory_cards) return [];
+  
+  return (user.value.inventory_cards || []).map(itemName => {
+    // If newItem is just a string (as expected from DB)
+    const details = cardMap[itemName] || { rarity: 'Commune', image: '❓' };
+    return {
+      id: itemName, // Use name as ID for simplicity or generate one
+      name: details.name || itemName, // Use mapped name if available, else original string
+      ...details
+    };
+  });
+});
+
+onMounted(() => {
+  if (!userStore.currentUser) {
+    router.push('/login');
+  }
 });
 
 const getRarityColor = (rarity) => {
@@ -40,12 +83,21 @@ const getRarityColor = (rarity) => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-100 p-4 pb-24 font-sans">
+  <div v-if="user" class="min-h-screen bg-gray-100 p-4 pb-24 font-sans">
     
     <!-- Header RPG Card -->
     <div class="bg-white rounded-2xl shadow-xl p-6 mb-6 border-t-8 border-ocean-blue relative overflow-hidden">
       <!-- Background pattern decoration -->
       <div class="absolute top-0 right-0 opacity-10 text-9xl transform translate-x-12 -translate-y-6 pointer-events-none">⚓</div>
+
+      <!-- Logout Button (Top Right) -->
+      <button 
+        @click="handleLogout"
+        class="absolute top-4 right-4 bg-white/50 hover:bg-white text-gray-600 hover:text-red-600 p-2 rounded-full transition-all shadow-sm z-10"
+        title="Se déconnecter"
+      >
+        <span class="text-xl font-bold">🚪</span>
+      </button>
 
       <div class="flex items-center gap-4 mb-4">
         <!-- Avatar -->
@@ -85,7 +137,7 @@ const getRarityColor = (rarity) => {
     <div class="grid grid-cols-3 gap-3 mb-6">
       <div class="bg-white p-3 rounded-xl shadow-md text-center border-b-4 border-yellow-500">
         <div class="text-2xl mb-1">💰</div>
-        <div class="font-black text-gray-800 text-lg">{{ user.wallet }}</div>
+        <div class="font-black text-gray-800 text-lg">{{ user.wallet_points }}</div>
         <div class="text-[10px] uppercase font-bold text-gray-400">EcoCoins</div>
       </div>
       <div class="bg-white p-3 rounded-xl shadow-md text-center border-b-4 border-forest-green">
@@ -107,8 +159,8 @@ const getRarityColor = (rarity) => {
       </h2>
       <div class="flex gap-4 overflow-x-auto pb-4 snap-x">
         <div 
-          v-for="item in user.inventory" 
-          :key="item.id"
+          v-for="(item, index) in enrichedInventory" 
+          :key="index"
           class="min-w-[100px] bg-white rounded-xl p-3 shadow-md flex flex-col items-center justify-between border-2 snap-center"
           :class="getRarityColor(item.rarity)"
         >
