@@ -21,6 +21,7 @@ const analysisLog = [
     "Analyse spectrale...",
     "Détection des contours...",
     "Identification du matériau : POLYMÈRE",
+    "Estimation du poids...",
     "Calcul de l'impact carbone...",
     "Génération de la récompense..."
 ];
@@ -222,6 +223,14 @@ const closeReward = () => {
                      <div class="bg-slate-800 p-3 rounded-xl border border-white/10">
                          <div class="text-2xl font-black text-blue-400">+{{ rewardData.xp }}</div>
                          <div class="text-[10px] uppercase font-bold text-gray-400">XP Points</div>
+                     </div>
+                     <div class="bg-slate-800 p-3 rounded-xl border border-white/10">
+                         <div class="text-xl font-black text-emerald-400">{{ rewardData.weight }} kg</div>
+                         <div class="text-[10px] uppercase font-bold text-gray-400">Poids Estimé</div>
+                     </div>
+                     <div class="bg-slate-800 p-3 rounded-xl border border-white/10">
+                         <div class="text-xl font-black text-purple-400">+1</div>
+                         <div class="text-[10px] uppercase font-bold text-gray-400">Mission</div>
                      </div>
                  </div>
 

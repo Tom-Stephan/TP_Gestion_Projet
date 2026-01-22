@@ -35,6 +35,11 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 1,
     },
+    // Stats for profile displaying
+    stats: {
+        weight: { type: Number, default: 0 },
+        missions: { type: Number, default: 0 }
+    },
     clan_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Clan",

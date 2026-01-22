@@ -1,7 +1,7 @@
 {
-  "name": "zero-dechets-en-rade-backend",
+  "name": "trash-of-clans-backend",
   "version": "1.0.0",
-  "description": "Backend for Zero Déchets en Rade",
+  "description": "Backend for Trash of Clans",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
