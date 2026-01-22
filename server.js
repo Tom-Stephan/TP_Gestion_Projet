@@ -23,10 +23,12 @@ mongoose.connect(MONGO_URI, {
 const clanRoutes = require('./routes/clans');
 const userRoutes = require('./routes/users');
 const authRoutes = require('./routes/auth');
+const scanRoutes = require('./routes/scan');
 
 app.use('/api/clans', clanRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/scan', scanRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

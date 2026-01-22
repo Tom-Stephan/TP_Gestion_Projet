@@ -6,6 +6,7 @@ import ClanProfileView from '../views/ClanProfileView.vue'
 import UserProfile from '../components/UserProfile.vue'
 import ShopView from '../views/ShopView.vue'
 import LoginView from '../views/LoginView.vue'
+import ScanView from '../views/ScanView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -29,7 +30,8 @@ const router = createRouter({
     {
       path: '/scan',
       name: 'scan',
-      component: { template: '<div class="p-4 text-center"><h1 class="text-2xl font-bold">Scanner (US-02)</h1><p>Camera integration here</p></div>' }
+      component: ScanView,
+      meta: { requiresAuth: true }
     },
     {
       path: '/shop',
