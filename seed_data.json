@@ -19,7 +19,7 @@
   ],
   "users": [
     {
-      "_id": { "$oid": "5f8d0d55b54764421b7156u1" },
+      "_id": { "$oid": "5f8d0d55b54764421b715601" },
       "pseudo": "Lucas",
       "email": "lucas@example.com",
       "password": "hashed_password_123",
@@ -29,7 +29,7 @@
       "inventory_cards": ["card_001", "card_005"]
     },
     {
-      "_id": { "$oid": "5f8d0d55b54764421b7156u2" },
+      "_id": { "$oid": "5f8d0d55b54764421b715602" },
       "pseudo": "Martine",
       "email": "martine@example.com",
       "password": "hashed_password_123",
@@ -39,7 +39,7 @@
       "inventory_cards": ["card_010"]
     },
     {
-      "_id": { "$oid": "5f8d0d55b54764421b7156u3" },
+      "_id": { "$oid": "5f8d0d55b54764421b715603" },
       "pseudo": "Thomas",
       "email": "thomas@example.com",
       "password": "hashed_password_123",
@@ -49,7 +49,7 @@
       "inventory_cards": []
     },
     {
-      "_id": { "$oid": "5f8d0d55b54764421b7156u4" },
+      "_id": { "$oid": "5f8d0d55b54764421b715604" },
       "pseudo": "Sarah",
       "email": "sarah@example.com",
       "password": "hashed_password_123",
@@ -59,7 +59,7 @@
       "inventory_cards": ["card_999", "card_777"]
     },
     {
-      "_id": { "$oid": "5f8d0d55b54764421b7156u5" },
+      "_id": { "$oid": "5f8d0d55b54764421b715605" },
       "pseudo": "Erwan",
       "email": "erwan@example.com",
       "password": "hashed_password_123",
@@ -76,7 +76,7 @@
       "lon": -4.485,
       "type_dechet": "Pneus",
       "poids_estime": 50,
-      "createur_id": { "$oid": "5f8d0d55b54764421b7156u1" },
+      "createur_id": { "$oid": "5f8d0d55b54764421b715601" },
       "est_valide": true
     },
     {
@@ -85,7 +85,7 @@
       "lon": -4.4375,
       "type_dechet": "Plastique",
       "poids_estime": 15,
-      "createur_id": { "$oid": "5f8d0d55b54764421b7156u3" },
+      "createur_id": { "$oid": "5f8d0d55b54764421b715603" },
       "est_valide": true
     },
     {
@@ -94,7 +94,7 @@
       "lon": -4.49,
       "type_dechet": "Mégots",
       "poids_estime": 2,
-      "createur_id": { "$oid": "5f8d0d55b54764421b7156u2" },
+      "createur_id": { "$oid": "5f8d0d55b54764421b715602" },
       "est_valide": true
     },
     {
@@ -103,7 +103,7 @@
       "lon": -4.498,
       "type_dechet": "Métal",
       "poids_estime": 5,
-      "createur_id": { "$oid": "5f8d0d55b54764421b7156u4" },
+      "createur_id": { "$oid": "5f8d0d55b54764421b715604" },
       "est_valide": true
     },
     {
@@ -112,7 +112,7 @@
       "lon": -4.45,
       "type_dechet": "Plastique",
       "poids_estime": 8,
-      "createur_id": { "$oid": "5f8d0d55b54764421b7156u1" },
+      "createur_id": { "$oid": "5f8d0d55b54764421b715601" },
       "est_valide": false
     },
     {
@@ -121,7 +121,7 @@
       "lon": -4.57,
       "type_dechet": "Filets de pêche",
       "poids_estime": 30,
-      "createur_id": { "$oid": "5f8d0d55b54764421b7156u5" },
+      "createur_id": { "$oid": "5f8d0d55b54764421b715605" },
       "est_valide": true
     },
     {
@@ -130,7 +130,7 @@
       "lon": -4.395,
       "type_dechet": "Encombrants",
       "poids_estime": 20,
-      "createur_id": { "$oid": "5f8d0d55b54764421b7156u2" },
+      "createur_id": { "$oid": "5f8d0d55b54764421b715602" },
       "est_valide": true
     },
     {
@@ -139,7 +139,7 @@
       "lon": -4.51,
       "type_dechet": "Verre",
       "poids_estime": 10,
-      "createur_id": { "$oid": "5f8d0d55b54764421b7156u3" },
+      "createur_id": { "$oid": "5f8d0d55b54764421b715603" },
       "est_valide": true
     },
     {
@@ -148,7 +148,7 @@
       "lon": -4.495,
       "type_dechet": "Carton",
       "poids_estime": 4,
-      "createur_id": { "$oid": "5f8d0d55b54764421b7156u1" },
+      "createur_id": { "$oid": "5f8d0d55b54764421b715601" },
       "est_valide": true
     },
     {
@@ -157,7 +157,7 @@
       "lon": -4.44,
       "type_dechet": "Organique",
       "poids_estime": 12,
-      "createur_id": { "$oid": "5f8d0d55b54764421b7156u4" },
+      "createur_id": { "$oid": "5f8d0d55b54764421b715604" },
       "est_valide": false
     }
   ]
